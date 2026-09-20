@@ -2,46 +2,167 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SNES Cloud Emulator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SNES Classic Cloud Console</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            background-color: #121212;
+            background: radial-gradient(circle, #25262b 0%, #0f1013 100%);
             color: #ffffff;
-            font-family: Arial, sans-serif;
+            font-family: 'Arial Black', Gadget, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
             overflow: hidden;
+            touch-action: manipulation;
         }
+
         #info-bar {
-            margin-bottom: 10px;
-            font-size: 0.95rem;
-            color: #bbb;
-            text-align: center;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+            color: #a2a2d0;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.6);
         }
-        #game-container {
-            width: 100vw;
-            height: 85vh;
-            max-width: 960px;
-            background: #000;
-            border: 2px solid #333;
-            border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+
+        /* CUERPO PRINCIPAL DE LA CARCASA SNES */
+        .snes-hardware {
+            background-color: #cbd0df; /* Gris claro oficial SNES */
+            border: 6px solid #adb2c4;
+            border-radius: 24px;
+            padding: 40px 20px 30px 20px;
+            box-shadow: 
+                inset 0 6px 0 #f0f2f7, 
+                0 20px 40px rgba(0,0,0,0.8);
             position: relative;
+            width: 95vw;
+            max-width: 800px;
+            height: 75vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* PANEL CENTRAL OSCURO (Donde se inserta el cartucho simulado) */
+        .snes-cartridge-slot {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 65%;
+            height: 30px;
+            background-color: #9ea3b5;
+            border-bottom: 4px solid #7d8194;
+            border-radius: 0 0 16px 16px;
+            box-shadow: inset 0 -3px 5px rgba(0,0,0,0.3);
+        }
+
+        /* INTERRUPTORES DE POWER Y RESET (Púrpura Clásico) */
+        .snes-switch {
+            position: absolute;
+            top: -15px;
+            width: 45px;
+            height: 25px;
+            background-color: #51448b; /* Morado SNES */
+            border-radius: 6px 6px 0 0;
+            box-shadow: 0 -3px 0 #3a3068, inset 0 2px 3px rgba(255,255,255,0.4);
+        }
+        .switch-power { left: 40px; }
+        .switch-reset { right: 40px; background-color: #695da6; } /* Un tono más claro para el botón Reset */
+
+        /* ETIQUETAS DE TEXTO GRABADAS EN EL PLÁSTICO */
+        .snes-label {
+            position: absolute;
+            font-size: 0.65rem;
+            color: #51448b;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .label-power { top: 15px; left: 42px; }
+        .label-reset { top: 15px; right: 42px; }
+
+        /* RANURAS DE VENTILACIÓN TRASERAS */
+        .snes-vents {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 5px;
+        }
+        .vent-line {
+            width: 4px;
+            height: 12px;
+            background-color: #8c91a3;
+            border-radius: 2px;
+        }
+
+        /* CONTENEDOR DE LA PANTALLA (Borde interior gris oscuro) */
+        #game-container {
+            width: 100%;
+            height: 100%;
+            background: #000;
+            border: 12px solid #585a66; /* Emula el bisel profundo de la consola */
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.9);
+        }
+
+        #game {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* TEXTO INFERIOR: SUPER NINTENDO ENTERTAINMENT SYSTEM */
+        .snes-brand {
+            margin-top: 12px;
+            font-size: 0.8rem;
+            color: #484a56;
+            letter-spacing: 5px;
+            text-align: center;
+            font-style: italic;
+            border-bottom: 2px solid #9ea3b5;
+            padding-bottom: 4px;
+            width: 80%;
+        }
+
+        /* CONFIGURACIÓN CROMÁTICA DE LOS BOTONES VIRTUALES */
+        :root {
+            --ejs-button-color: rgba(81, 68, 139, 0.65) !important; /* Púrpura SNES transparente */
+            --ejs-dpad-color: rgba(45, 46, 53, 0.8) !important;     /* Cruceta oscura */
         }
     </style>
 </head>
 <body>
 
-    <div id="info-bar">Buscando juego .sfc o .smc en la nube...</div>
+    <div id="info-bar">SÚPER NINTENDO CLOUD CONSOLE</div>
     
-    <!-- Contenedor donde se dibuja el emulador y la pantalla -->
-    <div id="game-container">
-        <div id="game"></div>
+    <!-- Módulo de Hardware SNES Estilizado -->
+    <div class="snes-hardware">
+        <!-- Componentes físicos simulados de la carcasa -->
+        <div class="snes-switch switch-power"></div>
+        <div class="snes-switch switch-reset"></div>
+        <span class="snes-label label-power">Power</span>
+        <span class="snes-label label-reset">Reset</span>
+        
+        <div class="snes-cartridge-slot"></div>
+        
+        <div class="snes-vents">
+            <div class="vent-line"></div><div class="vent-line"></div><div class="vent-line"></div>
+            <div class="vent-line"></div><div class="vent-line"></div><div class="vent-line"></div>
+        </div>
+        
+        <!-- Pantalla del juego -->
+        <div id="game-container">
+            <div id="game"></div>
+        </div>
+        
+        <!-- Logotipo clásico inferior -->
+        <div class="snes-brand">SUPER NINTENDO</div>
     </div>
 
     <script>
@@ -51,22 +172,21 @@
             let romUrl = "";
             let romFileName = "";
 
-            // 1. Detectar automáticamente si estamos corriendo dentro de GitHub Pages
             const host = window.location.hostname;
             const pathParts = window.location.pathname.split('/').filter(Boolean);
 
+            // 1. Escaneo automático en GitHub Pages
             if (host.includes("github.io") && pathParts.length > 0) {
-                const user = host.split('.')[0];
-                const repo = pathParts[0];
+                const user = host.split('.');
+                const repo = pathParts;
                 const apiUrl = `https://github.com{user}/${repo}/contents/`;
 
                 try {
-                    statusText.innerText = "Escaneando repositorio en GitHub...";
+                    statusText.innerText = "INSERTANDO CARTUCHO EN LA RAÍZ...";
                     const res = await fetch(apiUrl);
-                    if (!res.ok) throw new Error("No se pudo consultar la API de GitHub.");
+                    if (!res.ok) throw new Error();
                     const files = await res.json();
 
-                    // Buscar el primer archivo con terminación .sfc o .smc en la raíz
                     const romFile = files.find(f => {
                         const name = f.name.toLowerCase();
                         return name.endsWith('.sfc') || name.endsWith('.smc');
@@ -77,11 +197,11 @@
                         romUrl = './' + encodeURIComponent(romFileName);
                     }
                 } catch (e) {
-                    console.warn("Fallo escaneo automático por API, probando nombres comunes...", e);
+                    console.warn("Fallo API GitHub, recurriendo a escaneo plano.");
                 }
             }
 
-            // 2. Si no encontró por API (o estás probando en local), intenta nombres estándar
+            // 2. Método de contingencia local o nombres estáticos
             if (!romUrl) {
                 const commonNames = ["juego.sfc", "juego.smc", "game.sfc", "game.smc"];
                 for (const name of commonNames) {
@@ -97,21 +217,26 @@
             }
 
             if (!romUrl) {
-                statusText.innerHTML = "⚠️ No se encontró ningún archivo <b>.sfc</b> o <b>.smc</b> en la raíz.<br>Asegúrate de subir la ROM al repositorio.";
+                statusText.innerHTML = "⚠️ ERROR: INSERTE UN CARTUCHO (.SFC / .SMC) EN EL REPOSITORIO";
                 return;
             }
 
-            statusText.innerText = "Ejecutando: " + romFileName;
+            statusText.innerText = "ENCENDIDO: " + romFileName.toUpperCase();
 
-            // 3. Parámetros de configuración de la librería EmulatorJS
+            // 3. Configuración técnica de EmulatorJS
             window.EJS_player = '#game';
-            window.EJS_core = 'snes'; // Carga el núcleo oficial Snes9x
-            window.EJS_gameUrl = romUrl; // Enlace relativo a la ROM en la raíz
-            window.EJS_pathtodata = 'https://emulatorjs.org'; // CDN oficial con todas las librerías
+            window.EJS_core = 'snes'; 
+            window.EJS_gameUrl = romUrl; 
+            window.EJS_pathtodata = 'https://emulatorjs.org'; 
             window.EJS_startOnLoaded = true;
-            window.EJS_color = '#ff5722';
+            window.EJS_color = '#51448b'; 
 
-            // 4. Inyectar el cargador oficial de EmulatorJS
+            // Forzar el gamepad virtual nativo en pantalla
+            window.EJS_VirtualGamepadSettings = {
+                "show": true
+            };
+
+            // 4. Inyección del cargador central de dependencias
             const script = document.createElement('script');
             script.src = 'https://emulatorjs.orgloader.js';
             document.body.appendChild(script);
