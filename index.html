@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SNES Classic Cloud Console</title>
+    <title>SNES Classic - Super Mario World</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -71,7 +71,7 @@
             box-shadow: 0 -3px 0 #3a3068, inset 0 2px 3px rgba(255,255,255,0.4);
         }
         .switch-power { left: 40px; }
-        .switch-reset { right: 40px; background-color: #695da6; } /* Un tono más claro para el botón Reset */
+        .switch-reset { right: 40px; background-color: #695da6; }
 
         /* ETIQUETAS DE TEXTO GRABADAS EN EL PLÁSTICO */
         .snes-label {
@@ -105,7 +105,7 @@
             width: 100%;
             height: 100%;
             background: #000;
-            border: 12px solid #585a66; /* Emula el bisel profundo de la consola */
+            border: 12px solid #585a66; 
             border-radius: 12px;
             overflow: hidden;
             position: relative;
@@ -132,8 +132,8 @@
 
         /* CONFIGURACIÓN CROMÁTICA DE LOS BOTONES VIRTUALES */
         :root {
-            --ejs-button-color: rgba(81, 68, 139, 0.65) !important; /* Púrpura SNES transparente */
-            --ejs-dpad-color: rgba(45, 46, 53, 0.8) !important;     /* Cruceta oscura */
+            --ejs-button-color: rgba(81, 68, 139, 0.65) !important; 
+            --ejs-dpad-color: rgba(45, 46, 53, 0.8) !important;     
         }
     </style>
 </head>
@@ -141,9 +141,7 @@
 
     <div id="info-bar">SÚPER NINTENDO CLOUD CONSOLE</div>
     
-    <!-- Módulo de Hardware SNES Estilizado -->
     <div class="snes-hardware">
-        <!-- Componentes físicos simulados de la carcasa -->
         <div class="snes-switch switch-power"></div>
         <div class="snes-switch switch-reset"></div>
         <span class="snes-label label-power">Power</span>
@@ -161,69 +159,20 @@
             <div id="game"></div>
         </div>
         
-        <!-- Logotipo clásico inferior -->
         <div class="snes-brand">SUPER NINTENDO</div>
     </div>
 
     <script>
         const statusText = document.getElementById('info-bar');
 
-        async function initSnesCloud() {
-            let romUrl = "";
-            let romFileName = "";
+        function initSnesCloud() {
+            // Nombre exacto del archivo con los espacios codificados para la URL web
+            const targetRom = "Super Mario World (USA).sfc";
+            const romUrl = './' + encodeURIComponent(targetRom);
 
-            const host = window.location.hostname;
-            const pathParts = window.location.pathname.split('/').filter(Boolean);
+            statusText.innerText = "ENCENDIDO: SUPER MARIO WORLD";
 
-            // 1. Escaneo automático en GitHub Pages
-            if (host.includes("github.io") && pathParts.length > 0) {
-                const user = host.split('.');
-                const repo = pathParts;
-                const apiUrl = `https://github.com{user}/${repo}/contents/`;
-
-                try {
-                    statusText.innerText = "INSERTANDO CARTUCHO EN LA RAÍZ...";
-                    const res = await fetch(apiUrl);
-                    if (!res.ok) throw new Error();
-                    const files = await res.json();
-
-                    const romFile = files.find(f => {
-                        const name = f.name.toLowerCase();
-                        return name.endsWith('.sfc') || name.endsWith('.smc');
-                    });
-
-                    if (romFile) {
-                        romFileName = romFile.name;
-                        romUrl = './' + encodeURIComponent(romFileName);
-                    }
-                } catch (e) {
-                    console.warn("Fallo API GitHub, recurriendo a escaneo plano.");
-                }
-            }
-
-            // 2. Método de contingencia local o nombres estáticos
-            if (!romUrl) {
-                const commonNames = ["juego.sfc", "juego.smc", "game.sfc", "game.smc"];
-                for (const name of commonNames) {
-                    try {
-                        const test = await fetch('./' + name, { method: 'HEAD' });
-                        if (test.ok) {
-                            romFileName = name;
-                            romUrl = './' + name;
-                            break;
-                        }
-                    } catch(err) {}
-                }
-            }
-
-            if (!romUrl) {
-                statusText.innerHTML = "⚠️ ERROR: INSERTE UN CARTUCHO (.SFC / .SMC) EN EL REPOSITORIO";
-                return;
-            }
-
-            statusText.innerText = "ENCENDIDO: " + romFileName.toUpperCase();
-
-            // 3. Configuración técnica de EmulatorJS
+            // Configuración técnica de EmulatorJS apuntando al archivo directo
             window.EJS_player = '#game';
             window.EJS_core = 'snes'; 
             window.EJS_gameUrl = romUrl; 
@@ -236,7 +185,7 @@
                 "show": true
             };
 
-            // 4. Inyección del cargador central de dependencias
+            // Inyección del cargador central de dependencias
             const script = document.createElement('script');
             script.src = 'https://emulatorjs.orgloader.js';
             document.body.appendChild(script);
