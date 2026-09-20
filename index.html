@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SNES Cloud Emulator</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        #info-bar {
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+            color: #bbb;
+            text-align: center;
+        }
+        #game-container {
+            width: 100vw;
+            height: 85vh;
+            max-width: 960px;
+            background: #000;
+            border: 2px solid #333;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="info-bar">Buscando juego .sfc o .smc en la nube...</div>
+    
+    <!-- Contenedor donde se dibuja el emulador y la pantalla -->
+    <div id="game-container">
+        <div id="game"></div>
+    </div>
+
+    <script>
+        const statusText = document.getElementById('info-bar');
+
+        async function initSnesCloud() {
+            let romUrl = "";
+            let romFileName = "";
+
+            // 1. Detectar automáticamente si estamos corriendo dentro de GitHub Pages
+            const host = window.location.hostname;
+            const pathParts = window.location.pathname.split('/').filter(Boolean);
+
+            if (host.includes("github.io") && pathParts.length > 0) {
+                const user = host.split('.')[0];
+                const repo = pathParts[0];
+                const apiUrl = `https://github.com{user}/${repo}/contents/`;
+
+                try {
+                    statusText.innerText = "Escaneando repositorio en GitHub...";
+                    const res = await fetch(apiUrl);
+                    if (!res.ok) throw new Error("No se pudo consultar la API de GitHub.");
+                    const files = await res.json();
+
+                    // Buscar el primer archivo con terminación .sfc o .smc en la raíz
+                    const romFile = files.find(f => {
+                        const name = f.name.toLowerCase();
+                        return name.endsWith('.sfc') || name.endsWith('.smc');
+                    });
+
+                    if (romFile) {
+                        romFileName = romFile.name;
+                        romUrl = './' + encodeURIComponent(romFileName);
+                    }
+                } catch (e) {
+                    console.warn("Fallo escaneo automático por API, probando nombres comunes...", e);
+                }
+            }
+
+            // 2. Si no encontró por API (o estás probando en local), intenta nombres estándar
+            if (!romUrl) {
+                const commonNames = ["juego.sfc", "juego.smc", "game.sfc", "game.smc"];
+                for (const name of commonNames) {
+                    try {
+                        const test = await fetch('./' + name, { method: 'HEAD' });
+                        if (test.ok) {
+                            romFileName = name;
+                            romUrl = './' + name;
+                            break;
+                        }
+                    } catch(err) {}
+                }
+            }
+
+            if (!romUrl) {
+                statusText.innerHTML = "⚠️ No se encontró ningún archivo <b>.sfc</b> o <b>.smc</b> en la raíz.<br>Asegúrate de subir la ROM al repositorio.";
+                return;
+            }
+
+            statusText.innerText = "Ejecutando: " + romFileName;
+
+            // 3. Parámetros de configuración de la librería EmulatorJS
+            window.EJS_player = '#game';
+            window.EJS_core = 'snes'; // Carga el núcleo oficial Snes9x
+            window.EJS_gameUrl = romUrl; // Enlace relativo a la ROM en la raíz
+            window.EJS_pathtodata = 'https://emulatorjs.org'; // CDN oficial con todas las librerías
+            window.EJS_startOnLoaded = true;
+            window.EJS_color = '#ff5722';
+
+            // 4. Inyectar el cargador oficial de EmulatorJS
+            const script = document.createElement('script');
+            script.src = 'https://emulatorjs.orgloader.js';
+            document.body.appendChild(script);
+        }
+
+        initSnesCloud();
+    </script>
+</body>
+</html>
